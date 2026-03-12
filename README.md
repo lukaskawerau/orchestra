@@ -2,6 +2,11 @@
 
 Multi-project AI agent orchestrator. Self-hosted Symphony for indie hackers.
 
+> ⚠️ **STATUS: Vaporware** ⚠️
+> 
+> This is a freshly scaffolded project. It does not work yet. None of the features below exist.
+> Follow along as we build it: [Execution Plan](./docs/plans/001-mvp.md)
+
 ## What is this?
 
 Orchestra manages AI coding agents across multiple repositories from a single dashboard.
