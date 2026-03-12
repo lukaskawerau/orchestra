@@ -39,6 +39,22 @@ pnpm ci           # Full CI check (fmt, lint, typecheck, test)
 pnpm db:studio    # Open Drizzle Studio
 ```
 
+## Code Navigation (ast-index)
+
+Use `ast-index` for fast, AST-aware code search. Much better than grep.
+
+```bash
+ast-index search <query>          # Universal search
+ast-index class <name>            # Find classes/interfaces
+ast-index implementations <type>  # Find implementations
+ast-index usages <symbol>         # Find symbol usages (~8ms)
+ast-index callers <function>      # Find call sites
+ast-index outline <file>          # Symbols in file
+ast-index hierarchy <class>       # Class hierarchy tree
+```
+
+Index is auto-rebuilt on workspace creation and updated before each run.
+
 ## Key Files
 
 | File | Purpose |

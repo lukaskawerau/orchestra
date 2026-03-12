@@ -12,7 +12,9 @@ workspace:
 hooks:
   after_create: |
     pnpm install
+    ast-index rebuild
   before_run: |
+    ast-index update
     pnpm fmt:check && pnpm lint && pnpm check
 
 agent:

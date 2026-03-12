@@ -77,3 +77,12 @@ Avoid: bleeding-edge ORMs, exotic state managers, "clever" abstractions.
 
 This repo uses itself. Issues here are tracked in Orchestra.
 If something is painful for agents, fix it in the product.
+
+## 10. AST-Aware Tooling
+
+Every workspace gets `ast-index` for fast code navigation.
+- Rebuilt on workspace creation
+- Updated before each run
+- Agents use it instead of grep for finding code
+
+See: https://github.com/defendend/Claude-ast-index-search
