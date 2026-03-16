@@ -1,88 +1,168 @@
+---
+summary: Product and engineering principles for Orchestra
+read_when:
+  - defining product scope or roadmap
+  - deciding between wrapping Symphony or reimplementing it
+  - designing repo audit and harness-readiness features
+---
+
 # Design Principles
 
-These are non-negotiable. If you're unsure, default to these.
+These are the defaults. Violating them needs a real reason.
 
-## 1. Self-Hosting First
+## 1. Wrapper First, Rebuild Later
 
-Orchestra must run with a single `docker compose up`. No external dependencies.
-- SQLite, not Postgres
-- Built-in issue tracking, not Linear
-- Local git, not GitHub API (for core functionality)
+Orchestra should wrap Symphony before it attempts to replace Symphony.
 
-## 2. Multi-Project Native
+Why:
+- faster path to a useful product
+- less protocol drift
+- less maintenance debt
+- lets us spend energy on the differentiator
 
-Unlike Symphony (single project), Orchestra manages many repos from one place.
-- Project registry with per-project config
-- Unified run queue with fair scheduling
-- Dashboard shows all projects at once
+Bad move:
+- rebuilding runner/workspace internals because we can
 
-## 3. Agent-First UX
+Good move:
+- using Symphony as the execution substrate while Orchestra owns the control plane
 
-The UI exists for humans, but the architecture serves agents.
-- Structured logs that agents can query
-- Predictable file layout
-- Minimal magic, maximum explicitness
+## 2. Differentiation Above the Runner
 
-## 4. Parse at Boundaries
+The product is not "another agent runner".
+The product is:
+- multi-project orchestration
+- self-hosted dashboard
+- tracker replacement over time
+- run visibility
+- repo evaluation for harness engineering
 
-Every external input is validated immediately.
+If a feature does not strengthen that layer, it is probably not MVP-critical.
+
+## 3. Harness Engineering Is a Product Surface
+
+Orchestra should help users make repos easier for agents to work in.
+
+Audit dimensions should include:
+- agent legibility
+- deterministic setup
+- fast local validation
+- explicit architecture boundaries
+- good docs and workflow clarity
+- structured logs and observable failures
+- cleanup and entropy control
+
+Output must be actionable:
+- concrete findings
+- severity / impact
+- recommended first epic
+- acceptance criteria for that epic
+
+## 4. Self-Hosting First
+
+Orchestra must be easy to stand up:
+- one container or one `docker compose up`
+- local database
+- local filesystem access
+- minimal required secrets
+
+External SaaS integrations can help, but core value should not depend on them.
+
+## 5. Multi-Project Native
+
+This is where Orchestra stops being "Symphony plus chrome".
+
+Must support:
+- many repos
+- many queues
+- fair scheduling
+- per-project workflow config
+- cross-project visibility from one dashboard
+
+Single-project assumptions are bugs.
+
+## 6. Temporary Integrations Are Fine
+
+Using Linear now is acceptable.
+Pretending temporary integrations are permanent architecture is not.
+
+Rule:
+- near-term pragmatism is fine
+- docs must say what is temporary and what is target state
+
+## 7. Parse at Boundaries
+
+Never trust:
+- workflow frontmatter
+- tracker payloads
+- subprocess output
+- agent events
+- audit command output
+
+Validate immediately.
+
 ```typescript
-// ✅ Good
-const input = issueSchema.parse(req.body);
-
-// ❌ Bad
-const input = req.body as Issue;
+const config = workflowSchema.parse(rawConfig);
 ```
 
-## 5. Errors Are Data
+## 8. Errors Are Data
 
-Don't throw and pray. Return typed errors.
-```typescript
-// ✅ Good
-type Result<T> = { ok: true; data: T } | { ok: false; error: string };
+Agent systems fail in weird ways. If failures are opaque, the dashboard is useless.
 
-// ❌ Bad
-throw new Error("something went wrong");
-```
+Prefer:
+- typed results
+- structured failure reasons
+- persisted artifacts
+- explicit retry metadata
 
-## 6. Test the Boundaries
+Avoid:
+- silent fallbacks
+- stringly-typed status blobs
+- "unknown error" dead ends
 
-Focus tests on:
-- Schema validation
-- State transitions (orchestrator)
-- Protocol compliance (agent runner)
+## 9. Logs Are for Humans and Agents
 
-Don't obsess over testing pure functions — TypeScript already checks those.
+Everything important should be inspectable by both:
+- operators in the UI
+- later automation
 
-## 7. Logs Are for Agents
+That means:
+- structured JSON
+- stable event names
+- IDs on every relevant event
+- command + exit code + duration where relevant
 
-Structured JSON logging (pino). Every log line must be parseable.
-Include: timestamp, level, component, message, and relevant IDs.
+## 10. Fast Feedback Beats Cleverness
 
-```typescript
-log.info({ projectId, issueId, runId }, "Run started");
-```
+If a repo takes forever to validate, agent throughput collapses.
 
-## 8. Boring Technology
+Prefer:
+- cheap targeted tests
+- deterministic bootstrap
+- obvious scripts
+- local proof before remote proof
 
-Prefer well-known, stable libraries:
-- Drizzle (SQL)
-- Zod (validation)
-- Pino (logging)
-- SvelteKit (framework)
+Avoid:
+- magical setup
+- hidden mutable state
+- "works on CI only" validation
 
-Avoid: bleeding-edge ORMs, exotic state managers, "clever" abstractions.
+## 11. Repo-Specific Policy, Not Global Guessing
 
-## 9. Orchestra Builds Orchestra
+Orchestra core should not guess how every stack works.
 
-This repo uses itself. Issues here are tracked in Orchestra.
-If something is painful for agents, fix it in the product.
+Project config should define:
+- bootstrap hooks
+- validation commands
+- merge policy
+- artifact collection
 
-## 10. AST-Aware Tooling
+Core provides the framework. Projects provide the specifics.
 
-Every workspace gets `ast-index` for fast code navigation.
-- Rebuilt on workspace creation
-- Updated before each run
-- Agents use it instead of grep for finding code
+## 12. Orchestra Should Eventually Build Orchestra
 
-See: https://github.com/defendend/Claude-ast-index-search
+Target end state:
+- Orchestra tracks Orchestra work
+- Orchestra evaluates its own harness-readiness
+- Orchestra exposes its own rough edges quickly
+
+But "eventually" matters. First make the wrapper useful.

@@ -1,76 +1,130 @@
 # Orchestra 🎼
 
-Multi-project AI agent orchestrator. Self-hosted Symphony for indie hackers.
+Orchestra is a self-hosted control plane for Symphony.
 
-> ⚠️ **STATUS: Vaporware** ⚠️
-> 
-> This is a freshly scaffolded project. It does not work yet. None of the features below exist.
-> Follow along as we build it: [Execution Plan](./docs/plans/001-mvp.md)
+It is for people with multiple repos who want:
+- one place to see agent work
+- one queue across projects
+- a dashboard for runs, logs, and artifacts
+- a path away from Linear
+- a way to evaluate whether a repo is actually ready for harness engineering
 
-## What is this?
+## Status
 
-Orchestra manages AI coding agents across multiple repositories from a single dashboard.
-Unlike [OpenAI Symphony](https://github.com/openai/symphony), Orchestra:
+Early build. Real direction now:
+- wrap Symphony first
+- add Orchestra-specific control-plane value
+- delay native runner replacement until it is justified
 
-- Works with **multiple projects** from one control plane
-- Has **built-in issue tracking** (no Linear required)
-- Ships with a **web dashboard** (not just CLI)
-- Is **fully self-hosted** (single Docker command)
+Execution plan: [docs/plans/001-mvp.md](./docs/plans/001-mvp.md)
+
+## What Orchestra Does
+
+Orchestra is not trying to beat Symphony at being Symphony.
+
+Phase 1:
+- register multiple repos
+- track issues and runs across them
+- start Symphony-backed runs
+- persist logs and artifacts
+- evaluate repos for harness-readiness
+- generate the first hardening epic for brownfield codebases
+
+## What Symphony Does
+
+Symphony remains the execution engine:
+- per-run workspace lifecycle
+- agent execution loop
+- hooks inside a workspace
+- single-run semantics
+
+Orchestra sits above that layer.
+
+## Why This Exists
+
+Symphony is strong at executing a run.
+What is still missing for many teams:
+- multi-project coordination
+- a self-hosted dashboard
+- integrated run visibility
+- built-in issue tracking over time
+- a practical answer to: "is this repo even ready for harness engineering?"
+
+That is the product.
+
+## Architecture
+
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+High level:
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                 Dashboard / API (SvelteKit)                 │
+│  projects • issues • runs • logs • audit findings           │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│                Orchestra Control Plane                       │
+│  scheduling • project registry • run history • policies     │
+└──────────────────────────────────────────────────────────────┘
+               │                              │
+               ▼                              ▼
+┌──────────────────────────────┐   ┌───────────────────────────┐
+│   Symphony Runtime Adapter   │   │   Harness Readiness       │
+│                              │   │   Evaluator               │
+└──────────────────────────────┘   └───────────────────────────┘
+               │                              │
+               └──────────────┬───────────────┘
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    SQLite (Drizzle)                          │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Quick Start
 
 ```bash
-# Clone and install
 git clone https://github.com/lukaskawerau/orchestra
 cd orchestra
 pnpm install
-
-# Set up database
+mkdir -p data
 pnpm db:migrate
-
-# Start dev server
 pnpm dev
 ```
 
-Open http://localhost:5173
-
-## Architecture
-
-See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full picture.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                       Dashboard                         │
-│  Projects • Issues • Runs • Logs                        │
-├─────────────────────────────────────────────────────────┤
-│                     Orchestrator                        │
-│  Poll • Dispatch • Retry • Reconcile                    │
-├─────────────────────────────────────────────────────────┤
-│  Workspace Manager  │  Agent Runner  │  Observability   │
-│  (git worktrees)    │  (Codex/CC)    │  (logs/metrics)  │
-├─────────────────────────────────────────────────────────┤
-│                   SQLite (Drizzle)                      │
-└─────────────────────────────────────────────────────────┘
-```
-
-## For AI Agents
-
-See [AGENTS.md](./AGENTS.md) for how to work in this repo.
+Open `http://localhost:5173`.
 
 ## Development
 
 ```bash
-pnpm dev          # Start dev server
-pnpm test         # Run tests
-pnpm ci           # Full CI check
-pnpm db:studio    # Open Drizzle Studio
+pnpm dev
+pnpm test
+pnpm ci
+pnpm db:studio
 ```
+
+## Docs
+
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- [docs/DESIGN.md](./docs/DESIGN.md)
+- [docs/QUALITY.md](./docs/QUALITY.md)
+- [docs/plans/001-mvp.md](./docs/plans/001-mvp.md)
+
+## For AI Agents
+
+See [AGENTS.md](./AGENTS.md).
 
 ## Deployment
 
+Target experience:
+
 ```bash
-docker compose up -d
+docker compose up
 ```
+
+Not finished yet.
 
 ## License
 
