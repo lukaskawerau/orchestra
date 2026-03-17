@@ -59,9 +59,12 @@ export async function startAgent(
   config: AgentConfig,
   workspacePath: string,
   prompt: string,
-  onEvent: (event: AgentEvent) => void
+  onEvent: (event: AgentEvent) => void,
 ): Promise<AgentSession> {
-  log.info({ command: config.command, workspace: workspacePath }, "Starting agent");
+  log.info(
+    { command: config.command, workspace: workspacePath },
+    "Starting agent",
+  );
 
   const proc = spawn(config.command, config.args ?? [], {
     cwd: workspacePath,
@@ -82,7 +85,7 @@ export async function startAgent(
     try {
       const data = JSON.parse(line);
       const event = agentEventSchema.parse(data);
-      
+
       if (event.type === "thread.started") {
         session.threadId = event.threadId;
       } else if (event.type === "turn.started") {
@@ -92,7 +95,7 @@ export async function startAgent(
       }
 
       onEvent(event);
-    } catch (err) {
+    } catch {
       log.debug({ line }, "Non-JSON line from agent");
     }
   });

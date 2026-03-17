@@ -4,6 +4,7 @@ node_modules/
 
 # Build outputs
 .svelte-kit/
+.svelte-check-rs/
 build/
 dist/
 

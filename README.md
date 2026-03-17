@@ -101,7 +101,7 @@ Open `http://localhost:5173`.
 ```bash
 pnpm dev
 pnpm test
-pnpm ci
+pnpm verify
 pnpm db:studio
 ```
 

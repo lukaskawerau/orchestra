@@ -1,5 +1,12 @@
 import { execFile } from "node:child_process";
-import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdtemp,
+  mkdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -22,17 +29,22 @@ async function initRepo(repoPath: string): Promise<void> {
   await execFileAsync("git", ["config", "user.email", "codex@example.com"], {
     cwd: repoPath,
   });
-  await execFileAsync("git", ["config", "user.name", "Codex"], { cwd: repoPath });
+  await execFileAsync("git", ["config", "user.name", "Codex"], {
+    cwd: repoPath,
+  });
   await writeFile(join(repoPath, "README.md"), "# test\n");
   await execFileAsync("git", ["add", "README.md"], { cwd: repoPath });
-  await execFileAsync("git", ["commit", "-m", "Initial commit"], { cwd: repoPath });
+  await execFileAsync("git", ["commit", "-m", "Initial commit"], {
+    cwd: repoPath,
+  });
 }
 
 afterEach(async () => {
   await Promise.all(
-    tempDirs.splice(0).reverse().map((dir) =>
-      rm(dir, { recursive: true, force: true })
-    )
+    tempDirs
+      .splice(0)
+      .reverse()
+      .map((dir) => rm(dir, { recursive: true, force: true })),
   );
 });
 
@@ -52,7 +64,7 @@ hooks:
 ---
 Body
 `,
-      { baseDir: "/tmp/orchestra-repo", homeDir: "/home/tester" }
+      { baseDir: "/tmp/orchestra-repo", homeDir: "/home/tester" },
     );
 
     expect(config).toEqual({
@@ -74,10 +86,10 @@ workspace:
 hooks:
   before_create: echo nope
 ---
-`
-      )
+`,
+      ),
     ).toThrowError(
-      "Unsupported workflow hook config key(s): before_create. Supported keys: after_create, before_run, after_run, before_remove, timeout_ms"
+      "Unsupported workflow hook config key(s): before_create. Supported keys: after_create, before_run, after_run, before_remove, timeout_ms",
     );
   });
 
@@ -90,8 +102,8 @@ workspace:
 hooks:
   timeout_ms: nope
 ---
-`
-      )
+`,
+      ),
     ).toThrowError("hooks.timeout_ms must be a positive integer");
   });
 
@@ -102,8 +114,8 @@ hooks:
 hooks:
   after_create: echo ok
 ---
-`
-      )
+`,
+      ),
     ).toThrowError(/workspace/i);
   });
 
@@ -118,7 +130,7 @@ workspace:
   root: ~/custom-workspaces
 ---
 Body
-`
+`,
     );
 
     const config = await loadWorkspaceConfig(workflowPath, {
@@ -149,7 +161,7 @@ hooks:
     printf removed > '${beforeRemoveMarker}'
 ---
 Body
-`
+`,
     );
 
     const config = await loadWorkspaceConfig(workflowPath);
@@ -157,16 +169,18 @@ Body
       repoPath,
       "EMP-5",
       "emp-5-worktree",
-      config
+      config,
     );
 
-    expect(await readFile(join(workspace.path, "after-create.txt"), "utf8")).toBe(
-      "created"
-    );
+    expect(
+      await readFile(join(workspace.path, "after-create.txt"), "utf8"),
+    ).toBe("created");
 
     await removeWorkspace(repoPath, workspace.path, config);
 
     expect(await readFile(beforeRemoveMarker, "utf8")).toBe("removed");
-    await expect(access(workspace.path)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(workspace.path)).rejects.toMatchObject({
+      code: "ENOENT",
+    });
   });
 });

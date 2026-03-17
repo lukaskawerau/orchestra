@@ -45,7 +45,7 @@ export async function createWorkspace(
   repoPath: string,
   issueIdentifier: string,
   branchName: string,
-  config: WorkspaceConfig
+  config: WorkspaceConfig,
 ): Promise<Workspace> {
   const key = sanitizeKey(issueIdentifier);
   const workspacePath = join(config.root, key);
@@ -62,14 +62,22 @@ export async function createWorkspace(
     await mkdir(config.root, { recursive: true });
 
     // Create git worktree
-    await execFileAsync("git", ["worktree", "add", "-b", branchName, workspacePath], {
-      cwd: repoPath,
-    });
+    await execFileAsync(
+      "git",
+      ["worktree", "add", "-b", branchName, workspacePath],
+      {
+        cwd: repoPath,
+      },
+    );
 
     // Run after_create hook if defined
     if (config.hooks?.afterCreate) {
       log.info("Running after_create hook");
-      await runHook(config.hooks.afterCreate, workspacePath, config.hookTimeoutMs);
+      await runHook(
+        config.hooks.afterCreate,
+        workspacePath,
+        config.hookTimeoutMs,
+      );
     }
   }
 
@@ -79,14 +87,18 @@ export async function createWorkspace(
 export async function removeWorkspace(
   repoPath: string,
   workspacePath: string,
-  config: WorkspaceConfig
+  config: WorkspaceConfig,
 ): Promise<void> {
   log.info({ path: workspacePath }, "Removing workspace");
 
   // Run before_remove hook if defined
   if (config.hooks?.beforeRemove) {
     try {
-      await runHook(config.hooks.beforeRemove, workspacePath, config.hookTimeoutMs);
+      await runHook(
+        config.hooks.beforeRemove,
+        workspacePath,
+        config.hookTimeoutMs,
+      );
     } catch (err) {
       log.warn({ err }, "before_remove hook failed, continuing cleanup");
     }
@@ -101,7 +113,7 @@ export async function removeWorkspace(
 async function runHook(
   script: string,
   cwd: string,
-  timeoutMs = 60000
+  timeoutMs = 60000,
 ): Promise<void> {
   await execAsync(script, {
     cwd,

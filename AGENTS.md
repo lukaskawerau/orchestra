@@ -35,7 +35,7 @@ drizzle/        → Database migrations
 ```bash
 pnpm dev          # Start dev server
 pnpm test         # Run tests
-pnpm ci           # Full CI check (fmt, lint, typecheck, test)
+pnpm verify       # Full local gate (fmt, lint, typecheck, test)
 pnpm db:studio    # Open Drizzle Studio
 ```
 
@@ -67,6 +67,6 @@ Index is auto-rebuilt on workspace creation and updated before each run.
 ## When Stuck
 
 1. Run `pnpm test` — does it pass?
-2. Run `pnpm ci` — what fails?
+2. Run `pnpm verify` — what fails?
 3. Check `docs/DESIGN.md` for guidance
 4. If truly blocked, note it in the PR description

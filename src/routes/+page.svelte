@@ -1,7 +1,3 @@
-<script lang="ts">
-  // Orchestra Dashboard - Home
-</script>
-
 <main>
   <h1>🎼 Orchestra</h1>
   <p>Multi-project AI agent orchestrator</p>

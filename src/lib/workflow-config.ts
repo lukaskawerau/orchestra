@@ -37,15 +37,21 @@ const workflowHookCommandMap = {
   before_run: "beforeRun",
   after_run: "afterRun",
   before_remove: "beforeRemove",
-} as const satisfies Record<string, keyof NonNullable<WorkspaceConfig["hooks"]>>;
+} as const satisfies Record<
+  string,
+  keyof NonNullable<WorkspaceConfig["hooks"]>
+>;
 
 type WorkflowHookCommandName = keyof typeof workflowHookCommandMap;
 
 const supportedHookCommandNames = Object.keys(
-  workflowHookCommandMap
+  workflowHookCommandMap,
 ) as WorkflowHookCommandName[];
 
-const supportedHookConfigKeys = [...supportedHookCommandNames, "timeout_ms"] as const;
+const supportedHookConfigKeys = [
+  ...supportedHookCommandNames,
+  "timeout_ms",
+] as const;
 
 const rawWorkflowSchema = z
   .object({
@@ -68,7 +74,10 @@ function countIndent(line: string): number {
   return indent;
 }
 
-function nextMeaningfulLine(lines: string[], startIndex: number): number | null {
+function nextMeaningfulLine(
+  lines: string[],
+  startIndex: number,
+): number | null {
   for (let index = startIndex; index < lines.length; index += 1) {
     if (lines[index]?.trim() !== "") {
       return index;
@@ -100,7 +109,7 @@ function parseScalar(rawValue: string): ParsedYamlValue {
 function parseBlockScalar(
   lines: string[],
   state: ParserState,
-  parentIndent: number
+  parentIndent: number,
 ): string {
   const blockLines: string[] = [];
   let minIndent = Number.POSITIVE_INFINITY;
@@ -136,7 +145,7 @@ function parseBlockScalar(
 function parseNode(
   lines: string[],
   state: ParserState,
-  currentIndent: number
+  currentIndent: number,
 ): ParsedYamlValue {
   const nextIndex = nextMeaningfulLine(lines, state.index);
   if (nextIndex === null) {
@@ -160,7 +169,7 @@ function parseNode(
 function parseArray(
   lines: string[],
   state: ParserState,
-  currentIndent: number
+  currentIndent: number,
 ): ParsedYamlValue[] {
   const items: ParsedYamlValue[] = [];
 
@@ -176,7 +185,9 @@ function parseArray(
       break;
     }
     if (indent > currentIndent) {
-      throw new WorkflowConfigError(`Invalid YAML indentation near: ${line.trim()}`);
+      throw new WorkflowConfigError(
+        `Invalid YAML indentation near: ${line.trim()}`,
+      );
     }
 
     const trimmed = line.slice(indent);
@@ -189,10 +200,15 @@ function parseArray(
 
     if (rest === "") {
       const nestedIndex = nextMeaningfulLine(lines, state.index);
-      if (nestedIndex === null || countIndent(lines[nestedIndex] ?? "") <= currentIndent) {
+      if (
+        nestedIndex === null ||
+        countIndent(lines[nestedIndex] ?? "") <= currentIndent
+      ) {
         items.push({});
       } else {
-        items.push(parseNode(lines, state, countIndent(lines[nestedIndex] ?? "")));
+        items.push(
+          parseNode(lines, state, countIndent(lines[nestedIndex] ?? "")),
+        );
       }
       continue;
     }
@@ -206,7 +222,7 @@ function parseArray(
 function parseObject(
   lines: string[],
   state: ParserState,
-  currentIndent: number
+  currentIndent: number,
 ): ParsedYamlObject {
   const value: ParsedYamlObject = {};
 
@@ -222,7 +238,9 @@ function parseObject(
       break;
     }
     if (indent > currentIndent) {
-      throw new WorkflowConfigError(`Invalid YAML indentation near: ${line.trim()}`);
+      throw new WorkflowConfigError(
+        `Invalid YAML indentation near: ${line.trim()}`,
+      );
     }
 
     const trimmed = line.slice(indent);
@@ -246,10 +264,17 @@ function parseObject(
 
     if (rest === "") {
       const nestedIndex = nextMeaningfulLine(lines, state.index);
-      if (nestedIndex === null || countIndent(lines[nestedIndex] ?? "") <= currentIndent) {
+      if (
+        nestedIndex === null ||
+        countIndent(lines[nestedIndex] ?? "") <= currentIndent
+      ) {
         value[key] = {};
       } else {
-        value[key] = parseNode(lines, state, countIndent(lines[nestedIndex] ?? ""));
+        value[key] = parseNode(
+          lines,
+          state,
+          countIndent(lines[nestedIndex] ?? ""),
+        );
       }
       continue;
     }
@@ -262,7 +287,11 @@ function parseObject(
 
 function parseFrontmatterYaml(frontmatter: string): ParsedYamlObject {
   const state: ParserState = { index: 0 };
-  const parsed = parseNode(frontmatter.replace(/\r\n/g, "\n").split("\n"), state, 0);
+  const parsed = parseNode(
+    frontmatter.replace(/\r\n/g, "\n").split("\n"),
+    state,
+    0,
+  );
 
   if (Array.isArray(parsed) || parsed === null || typeof parsed !== "object") {
     throw new WorkflowConfigError("Workflow frontmatter must be a YAML object");
@@ -282,7 +311,10 @@ function extractFrontmatter(markdown: string): string {
   return match[1];
 }
 
-function resolveWorkspaceRoot(root: string, options: WorkflowConfigOptions): string {
+function resolveWorkspaceRoot(
+  root: string,
+  options: WorkflowConfigOptions,
+): string {
   const baseDir = options.baseDir ?? process.cwd();
   const homeDir = options.homeDir ?? homedir();
 
@@ -316,23 +348,30 @@ function parseHookCommand(name: string, value: unknown): string {
 
 function parseHookTimeout(value: unknown): number {
   if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
-    throw new WorkflowConfigError("hooks.timeout_ms must be a positive integer");
+    throw new WorkflowConfigError(
+      "hooks.timeout_ms must be a positive integer",
+    );
   }
 
   return value;
 }
 
-function mapHooks(rawHooks: Record<string, unknown> | undefined): MappedHookConfig {
+function mapHooks(
+  rawHooks: Record<string, unknown> | undefined,
+): MappedHookConfig {
   if (!rawHooks) {
     return {};
   }
 
   const unsupportedHooks = Object.keys(rawHooks).filter(
-    (hookName) => !supportedHookConfigKeys.includes(hookName as (typeof supportedHookConfigKeys)[number])
+    (hookName) =>
+      !supportedHookConfigKeys.includes(
+        hookName as (typeof supportedHookConfigKeys)[number],
+      ),
   );
   if (unsupportedHooks.length > 0) {
     throw new WorkflowConfigError(
-      `Unsupported workflow hook config key(s): ${unsupportedHooks.join(", ")}. Supported keys: ${supportedHookConfigKeys.join(", ")}`
+      `Unsupported workflow hook config key(s): ${unsupportedHooks.join(", ")}. Supported keys: ${supportedHookConfigKeys.join(", ")}`,
     );
   }
 
@@ -342,7 +381,7 @@ function mapHooks(rawHooks: Record<string, unknown> | undefined): MappedHookConf
     if (command !== undefined) {
       hooks[workflowHookCommandMap[hookName]] = parseHookCommand(
         `hooks.${hookName}`,
-        command
+        command,
       );
     }
   }
@@ -368,7 +407,7 @@ function formatSchemaError(error: z.ZodError): string {
 
 export function parseWorkflowConfig(
   markdown: string,
-  options: WorkflowConfigOptions = {}
+  options: WorkflowConfigOptions = {},
 ): WorkspaceConfig {
   const rawConfig = parseFrontmatterYaml(extractFrontmatter(markdown));
   const parsed = rawWorkflowSchema.safeParse(rawConfig);
@@ -389,7 +428,7 @@ export function parseWorkflowConfig(
 
 export async function loadWorkspaceConfig(
   workflowPath: string,
-  options: WorkflowConfigOptions = {}
+  options: WorkflowConfigOptions = {},
 ): Promise<WorkspaceConfig> {
   const markdown = await readFile(workflowPath, "utf8");
 
