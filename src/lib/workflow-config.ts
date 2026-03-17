@@ -315,7 +315,7 @@ function parseHookCommand(name: string, value: unknown): string {
 }
 
 function parseHookTimeout(value: unknown): number {
-  if (!Number.isInteger(value) || value <= 0) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
     throw new WorkflowConfigError("hooks.timeout_ms must be a positive integer");
   }
 

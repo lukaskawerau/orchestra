@@ -7,12 +7,13 @@
  * - Clean up worktrees for terminal issues
  */
 
-import { execFile } from "node:child_process";
+import { exec, execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
 import { createLogger } from "$lib/observability";
 
+const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
 const log = createLogger("workspace");
 

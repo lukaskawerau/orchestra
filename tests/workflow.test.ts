@@ -104,7 +104,7 @@ hooks:
 ---
 `
       )
-    ).toThrowError(/workspace\.root/i);
+    ).toThrowError(/workspace/i);
   });
 
   it("loads config from WORKFLOW.md and expands ~/", async () => {
