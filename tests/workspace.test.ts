@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-
-// Test the sanitizeKey logic (extracted for testing)
-function sanitizeKey(identifier: string): string {
-  return identifier.replace(/[^A-Za-z0-9._-]/g, "_");
-}
+import { sanitizeKey } from "$lib/workspace/manager";
 
 describe("Workspace Manager", () => {
   describe("sanitizeKey", () => {

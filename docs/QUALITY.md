@@ -51,7 +51,7 @@ Planned or misleading:
 |--------|-------|-----|
 | Symphony integration | D | Boundary not implemented yet; docs and code still mixed with native-runner assumptions |
 | Multi-project scheduling | C | Basic orchestrator skeleton exists, but no real execution loop |
-| Workflow parsing/config | D | `WORKFLOW.md` exists, but real parser/contract enforcement is not in place |
+| Workflow parsing/config | C | Symphony-facing `WORKFLOW.md` frontmatter parsing exists for workspace root + typed workspace hooks, but broader run-path integration is still incomplete |
 | Issue tracking | C | Linear-first for now; native tracker is target, not current reality |
 | Dashboard/UI | C | Basic shell only |
 | Run observability | C | Logger exists; end-to-end run artifacts do not |
@@ -91,14 +91,14 @@ And returns:
 
 1. No real Symphony adapter boundary yet.
 2. No proof that a run can move from issue selection to visible artifacts.
-3. No formal hook contract between Orchestra config and Symphony execution.
+3. Workspace hook contract is now typed, but broader Orchestra-to-Symphony workflow coverage is still incomplete.
 4. No repo audit engine.
 5. Docs were ahead of implementation and partly pointed at the wrong architecture.
 
 ## Next Quality Milestones
 
 1. [ ] Define and implement the Symphony adapter boundary.
-2. [ ] Parse workflow config with explicit schema and temporary-vs-target fields.
+2. [ ] Expand workflow parsing beyond workspace hooks and wire the parsed config through the full run path.
 3. [ ] Build one end-to-end path: issue -> Symphony run -> logs/artifacts in Orchestra.
 4. [ ] Implement a first repo audit that emits evidence-backed findings.
 5. [ ] Turn audit output into a generated "first harness-hardening epic".

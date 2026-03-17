@@ -7,13 +7,13 @@
  * - Clean up worktrees for terminal issues
  */
 
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { mkdir, rm, access } from "node:fs/promises";
+import { mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
 import { createLogger } from "$lib/observability";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const log = createLogger("workspace");
 
 export interface WorkspaceConfig {
@@ -36,7 +36,7 @@ export interface Workspace {
 /**
  * Sanitize issue identifier for use as directory name
  */
-function sanitizeKey(identifier: string): string {
+export function sanitizeKey(identifier: string): string {
   return identifier.replace(/[^A-Za-z0-9._-]/g, "_");
 }
 
@@ -61,10 +61,9 @@ export async function createWorkspace(
     await mkdir(config.root, { recursive: true });
 
     // Create git worktree
-    await execAsync(
-      `git worktree add -b ${branchName} ${workspacePath}`,
-      { cwd: repoPath }
-    );
+    await execFileAsync("git", ["worktree", "add", "-b", branchName, workspacePath], {
+      cwd: repoPath,
+    });
 
     // Run after_create hook if defined
     if (config.hooks?.afterCreate) {
@@ -93,7 +92,9 @@ export async function removeWorkspace(
   }
 
   // Remove git worktree
-  await execAsync(`git worktree remove --force ${workspacePath}`, { cwd: repoPath });
+  await execFileAsync("git", ["worktree", "remove", "--force", workspacePath], {
+    cwd: repoPath,
+  });
 }
 
 async function runHook(

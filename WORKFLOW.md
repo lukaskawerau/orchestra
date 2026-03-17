@@ -1,6 +1,7 @@
 ---
 tracker:
   kind: linear
+  api_key: $LINEAR_API_KEY
   project_slug: "orchestra-1afc783a00cd"
   active_states:
     - Todo
@@ -20,6 +21,25 @@ workspace:
 hooks:
   after_create: |
     set -euo pipefail
+    source_repo="$(cd "$(dirname "$PWD")/.." && pwd -P)"
+    git clone --depth 1 "$source_repo" .
+    pnpm install
+    mkdir -p data
+    pnpm db:migrate
+  before_run: |
+    set -euo pipefail
+    test -d .git
+    workspace_root="$(pwd -P)"
+    find . -type l -print | while IFS= read -r link; do
+      target="$(readlink -f "$link" || true)"
+      case "$target" in
+        "$workspace_root"|"$workspace_root"/*) ;;
+        *)
+          printf 'workspace symlink escape: %s -> %s\n' "$link" "$target" >&2
+          exit 1
+          ;;
+      esac
+    done
     pnpm install
     mkdir -p data
     pnpm db:migrate
